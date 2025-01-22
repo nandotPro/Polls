@@ -1,6 +1,7 @@
+from src.models.redis.repository.interface.poll_cache_repository_interface import PollCacheRepositoryInterface
 from src.models.redis.connection.redis_connection import RedisConnection
 
-class PollVoteRepository:
+class PollCacheRepository(PollCacheRepositoryInterface):
     def __init__(self):
         self.redis = RedisConnection().get_connection()
 

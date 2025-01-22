@@ -1,7 +1,8 @@
 from bson.objectid import ObjectId
-from models.mongodb.connection.mongo_connection import mongo_connection_handler
+from src.models.mongodb.connection.mongo_connection import mongo_connection_handler
+from src.models.mongodb.repository.interface.poll_repository_interface import PollRepositoryInterface
 
-class PollRepository:
+class PollRepository(PollRepositoryInterface):
     def __init__(self):
         self.db = mongo_connection_handler.get_db_connection()
         self.collection = self.db['polls']
