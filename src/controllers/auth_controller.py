@@ -2,8 +2,9 @@ from src.models.mongodb.repository.user_repository import UserRepository
 from src.models.redis.repository.user_cache_repository import UserCacheRepository
 from src.services.jwt_handler import JWTHandler
 from src.services.password_handler import PasswordHandler
+from src.controllers.interface.auth_controller_interface import AuthControllerInterface
 
-class AuthController:
+class AuthController(AuthControllerInterface):
     def __init__(self):
         self.user_repository = UserRepository()
         self.user_cache_repository = UserCacheRepository()

@@ -2,8 +2,9 @@ from src.models.mongodb.repository.poll_repository import PollRepository
 from src.models.redis.repository.poll_cache_repository import PollCacheRepository
 from src.services.jwt_handler import JWTHandler
 from datetime import datetime
+from src.controllers.interface.poll_controller_interface import PollControllerInterface
 
-class PollController:
+class PollController(PollControllerInterface):
     def __init__(self):
         self.poll_repository = PollRepository()
         self.poll_cache_repository = PollCacheRepository()
