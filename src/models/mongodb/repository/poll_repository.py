@@ -1,10 +1,9 @@
 from bson.objectid import ObjectId
-from src.models.mongodb.connection.mongo_connection import mongo_connection_handler
 from src.models.mongodb.repository.interface.poll_repository_interface import PollRepositoryInterface
 
 class PollRepository(PollRepositoryInterface):
-    def __init__(self):
-        self.db = mongo_connection_handler.get_db_connection()
+    def __init__(self, db_connection):
+        self.db = db_connection
         self.collection = self.db['polls']
 
     def create_poll(self, poll_data: dict) -> str:
@@ -23,7 +22,6 @@ class PollRepository(PollRepositoryInterface):
     def delete_poll(self, poll_id: str) -> bool:
         result = self.collection.delete_one({"_id": ObjectId(poll_id)})
         return result.deleted_count > 0
-
     def increment_vote(self, poll_id: str, option_index: int) -> bool:
         result = self.collection.update_one(
             {"_id": ObjectId(poll_id)},

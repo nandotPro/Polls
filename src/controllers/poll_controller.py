@@ -1,14 +1,19 @@
+from src.controllers.interface.poll_controller_interface import PollControllerInterface
 from src.models.mongodb.repository.poll_repository import PollRepository
 from src.models.redis.repository.poll_cache_repository import PollCacheRepository
 from src.services.jwt_handler import JWTHandler
 from datetime import datetime
-from src.controllers.interface.poll_controller_interface import PollControllerInterface
 
 class PollController(PollControllerInterface):
-    def __init__(self):
-        self.poll_repository = PollRepository()
-        self.poll_cache_repository = PollCacheRepository()
-        self.auth_handler = JWTHandler()
+    def __init__(
+        self,
+        poll_repository: PollRepository,
+        poll_cache_repository: PollCacheRepository,
+        auth_handler: JWTHandler
+    ):
+        self.poll_repository = poll_repository
+        self.poll_cache_repository = poll_cache_repository
+        self.auth_handler = auth_handler
 
     async def create_poll(self, poll_data: dict, token: str) -> dict:
         """Cria uma nova enquete"""
