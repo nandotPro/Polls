@@ -17,13 +17,13 @@ class AuthController(AuthControllerInterface):
         self.jwt_handler = jwt_handler
         self.password_handler = password_handler
 
-    async def register(self, user_data: dict) -> dict:
+    def register(self, user_data: dict) -> dict:
         """Registra um novo usuário"""
         # Validar dados
-        if await self.user_repository.find_by_email(user_data["email"]):
+        if self.user_repository.find_by_email(user_data["email"]):
             raise ValueError("Email já cadastrado")
         
-        if await self.user_repository.find_by_username(user_data["username"]):
+        if self.user_repository.find_by_username(user_data["username"]):
             raise ValueError("Username já em uso")
 
         # Hash da senha
@@ -31,7 +31,7 @@ class AuthController(AuthControllerInterface):
         del user_data["password"]
 
         # Salvar usuário
-        user_id = await self.user_repository.register_user(user_data)
+        user_id = self.user_repository.register_user(user_data)
         
         # Gerar token
         token = self.jwt_handler.generate_token({"user_id": user_id})
@@ -45,10 +45,10 @@ class AuthController(AuthControllerInterface):
             }
         }
 
-    async def login(self, email: str, password: str) -> dict:
+    def login(self, email: str, password: str) -> dict:
         """Realiza login do usuário"""
         # Buscar usuário
-        user = await self.user_repository.find_by_email(email)
+        user = self.user_repository.find_by_email(email)
         if not user:
             raise ValueError("Credenciais inválidas")
 
@@ -65,7 +65,7 @@ class AuthController(AuthControllerInterface):
             "username": user["username"],
             "email": user["email"]
         }
-        await self.user_cache_repository.set_user(str(user["_id"]), user_data)
+        self.user_cache_repository.set_user(str(user["_id"]), user_data)
 
         return {
             "token": token,

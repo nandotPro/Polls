@@ -15,15 +15,15 @@ class PollView(ViewInterface):
             body={"error": str(error)}
         )
 
-    async def handle(self, http_request: HttpRequest) -> HttpResponse:
+    def handle(self, http_request: HttpRequest) -> HttpResponse:
         raise NotImplementedError
 
-    async def create_poll(self, http_request: HttpRequest) -> HttpResponse:
+    def create_poll(self, http_request: HttpRequest) -> HttpResponse:
         try:
             self.validator.validate_create_poll(http_request)
             token = http_request.headers.get("Authorization")
             
-            result = await self.controller.create_poll(http_request.body, token)
+            result = self.controller.create_poll(http_request.body, token)
             return HttpResponse(status_code=201, body=result)
             
         except ValueError as error:
@@ -31,12 +31,12 @@ class PollView(ViewInterface):
         except Exception as error:
             return self._handle_error(error, 500)
 
-    async def vote(self, http_request: HttpRequest) -> HttpResponse:
+    def vote(self, http_request: HttpRequest) -> HttpResponse:
         try:
             self.validator.validate_vote(http_request)
             token = http_request.headers.get("Authorization")
             
-            result = await self.controller.vote(
+            result = self.controller.vote(
                 http_request.body["poll_id"],
                 http_request.body["option_index"],
                 token
@@ -48,13 +48,13 @@ class PollView(ViewInterface):
         except Exception as error:
             return self._handle_error(error, 500)
 
-    async def get_poll(self, http_request: HttpRequest) -> HttpResponse:
+    def get_poll(self, http_request: HttpRequest) -> HttpResponse:
         try:
             poll_id = http_request.query_params.get("poll_id")
             if not poll_id:
                 raise ValueError("poll_id é obrigatório")
                 
-            result = await self.controller.get_poll(poll_id)
+            result = self.controller.get_poll(poll_id)
             return HttpResponse(status_code=200, body=result)
             
         except ValueError as error:
@@ -62,12 +62,12 @@ class PollView(ViewInterface):
         except Exception as error:
             return self._handle_error(error, 500)
 
-    async def list_polls(self, http_request: HttpRequest) -> HttpResponse:
+    def list_polls(self, http_request: HttpRequest) -> HttpResponse:
         try:
             page = int(http_request.query_params.get("page", 1))
             limit = int(http_request.query_params.get("limit", 10))
             
-            result = await self.controller.list_polls(page, limit)
+            result = self.controller.list_polls(page, limit)
             return HttpResponse(status_code=200, body=result)
             
         except ValueError as error:
@@ -75,13 +75,13 @@ class PollView(ViewInterface):
         except Exception as error:
             return self._handle_error(error, 500)
 
-    async def get_user_polls(self, http_request: HttpRequest) -> HttpResponse:
+    def get_user_polls(self, http_request: HttpRequest) -> HttpResponse:
         try:
             token = http_request.headers.get("Authorization")
             if not token:
                 raise ValueError("Token é obrigatório")
                 
-            result = await self.controller.get_user_polls(token)
+            result = self.controller.get_user_polls(token)
             return HttpResponse(status_code=200, body=result)
             
         except ValueError as error:

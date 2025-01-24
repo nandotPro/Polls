@@ -15,16 +15,16 @@ class AuthView(ViewInterface):
             body={"error": str(error)}
         )
 
-    async def handle(self, http_request: HttpRequest) -> HttpResponse:
+    def handle(self, http_request: HttpRequest) -> HttpResponse:
         """Método genérico que será sobrescrito pelos métodos específicos"""
         raise NotImplementedError
 
-    async def register(self, http_request: HttpRequest) -> HttpResponse:
+    def register(self, http_request: HttpRequest) -> HttpResponse:
         """Processa requisição de registro"""
         try:
             self.validator.validate_register(http_request)
             
-            result = await self.controller.register(http_request.body)
+            result = self.controller.register(http_request.body)
             
             return HttpResponse(
                 status_code=201,
@@ -37,12 +37,12 @@ class AuthView(ViewInterface):
         except Exception as error:
             return self._handle_error(error, 500)
 
-    async def login(self, http_request: HttpRequest) -> HttpResponse:
+    def login(self, http_request: HttpRequest) -> HttpResponse:
         """Processa requisição de login"""
         try:
             self.validator.validate_login(http_request)
             
-            result = await self.controller.login(
+            result = self.controller.login(
                 http_request.body["email"],
                 http_request.body["password"]
             )

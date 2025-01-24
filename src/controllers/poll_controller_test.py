@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock
 from src.controllers.poll_controller import PollController
 
 class TestPollController:
@@ -9,13 +9,13 @@ class TestPollController:
         self.poll_cache_repository = Mock()
         self.auth_handler = Mock()
 
-        # Configurar métodos assíncronos
-        self.poll_repository.create_poll = AsyncMock()
-        self.poll_repository.find_by_id = AsyncMock()
-        self.poll_repository.increment_vote = AsyncMock()
-        self.poll_cache_repository.has_user_voted = AsyncMock()
-        self.poll_cache_repository.register_vote = AsyncMock()
-        self.poll_cache_repository.get_poll_votes = AsyncMock()
+        # Configurar métodos
+        self.poll_repository.create_poll = Mock()
+        self.poll_repository.find_by_id = Mock()
+        self.poll_repository.increment_vote = Mock()
+        self.poll_cache_repository.has_user_voted = Mock()
+        self.poll_cache_repository.register_vote = Mock()
+        self.poll_cache_repository.get_poll_votes = Mock()
 
         # Configurar controller com mocks
         self.poll_controller = PollController(
@@ -33,45 +33,41 @@ class TestPollController:
             ]
         }
 
-    @pytest.mark.asyncio
-    async def test_create_poll_success(self):
+    def test_create_poll_success(self):
         # Arrange
         self.auth_handler.validate_token.return_value = "user_id"
         self.poll_repository.create_poll.return_value = "poll_id"
 
         # Act
-        result = await self.poll_controller.create_poll(self.poll_data, "fake_token")
+        result = self.poll_controller.create_poll(self.poll_data, "fake_token")
 
         # Assert
         assert result["poll_id"] == "poll_id"
         self.poll_repository.create_poll.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_vote_success(self):
+    def test_vote_success(self):
         # Arrange
         self.auth_handler.validate_token.return_value = "user_id"
         self.poll_cache_repository.has_user_voted.return_value = False
         self.poll_cache_repository.register_vote.return_value = True
 
         # Act
-        result = await self.poll_controller.vote("poll_id", 0, "fake_token")
+        result = self.poll_controller.vote("poll_id", 0, "fake_token")
 
         # Assert
         assert result["message"] == "Voto registrado com sucesso"
         self.poll_repository.increment_vote.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_vote_already_voted(self):
+    def test_vote_already_voted(self):
         # Arrange
         self.auth_handler.validate_token.return_value = "user_id"
         self.poll_cache_repository.has_user_voted.return_value = True
 
         # Act & Assert
         with pytest.raises(ValueError, match="Usuário já votou nesta enquete"):
-            await self.poll_controller.vote("poll_id", 0, "fake_token")
+            self.poll_controller.vote("poll_id", 0, "fake_token")
 
-    @pytest.mark.asyncio
-    async def test_get_poll_success(self):
+    def test_get_poll_success(self):
         # Arrange
         test_poll = {
             "_id": "poll123",
@@ -85,7 +81,7 @@ class TestPollController:
         self.poll_cache_repository.get_poll_votes.return_value = {"option:0": 5, "option:1": 3}
 
         # Act
-        result = await self.poll_controller.get_poll("poll123")
+        result = self.poll_controller.get_poll("poll123")
 
         # Assert
         assert result["_id"] == "poll123"
@@ -94,11 +90,10 @@ class TestPollController:
         self.poll_repository.find_by_id.assert_called_once_with("poll123")
         self.poll_cache_repository.get_poll_votes.assert_called_once_with("poll123")
 
-    @pytest.mark.asyncio
-    async def test_get_poll_not_found(self):
+    def test_get_poll_not_found(self):
         # Arrange
         self.poll_repository.find_by_id.return_value = None
 
         # Act & Assert
         with pytest.raises(ValueError, match="Enquete não encontrada"):
-            await self.poll_controller.get_poll("nonexistent123") 
+            self.poll_controller.get_poll("nonexistent123") 
