@@ -3,8 +3,8 @@ from src.models.mongodb.connection.mongo_connection import mongo_connection_hand
 from src.models.mongodb.repository.interface.user_repository_interface import UserRepositoryInterface
 
 class UserRepository(UserRepositoryInterface):
-    def __init__(self):
-        self.db = mongo_connection_handler.get_db_connection()
+    def __init__(self, db_connection):
+        self.db = db_connection
         self.collection = self.db['users']
 
     def register_user(self, user_data: dict) -> str:

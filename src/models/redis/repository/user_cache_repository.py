@@ -3,8 +3,8 @@ import json
 from src.models.redis.connection.redis_connection import RedisConnection
 
 class UserCacheRepository(UserCacheRepositoryInterface):
-    def __init__(self):
-        self.redis = RedisConnection().get_connection
+    def __init__(self, redis_connection):
+        self.redis = redis_connection
         self.EXPIRE_TIME = 3600  # 1 hora em segundos
 
     def set_user(self, user_id: str, user_data: dict) -> None:

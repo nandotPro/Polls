@@ -5,11 +5,17 @@ from src.services.password_handler import PasswordHandler
 from src.controllers.interface.auth_controller_interface import AuthControllerInterface
 
 class AuthController(AuthControllerInterface):
-    def __init__(self):
-        self.user_repository = UserRepository()
-        self.user_cache_repository = UserCacheRepository()
-        self.jwt_handler = JWTHandler()
-        self.password_handler = PasswordHandler()
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        user_cache_repository: UserCacheRepository,
+        jwt_handler: JWTHandler,
+        password_handler: PasswordHandler
+    ):
+        self.user_repository = user_repository
+        self.user_cache_repository = user_cache_repository
+        self.jwt_handler = jwt_handler
+        self.password_handler = password_handler
 
     async def register(self, user_data: dict) -> dict:
         """Registra um novo usuário"""
