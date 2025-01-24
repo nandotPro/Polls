@@ -7,7 +7,7 @@ class PollValidator():
             raise ValueError("Body é obrigatório")
 
         for field in required_fields:
-            if not request_body.get(field):
+            if field not in request_body or request_body[field] is None:
                 raise ValueError(f"Campo {field} é obrigatório")
 
     def validate_create_poll(self, request: HttpRequest) -> None:
