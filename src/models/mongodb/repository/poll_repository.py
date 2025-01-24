@@ -22,6 +22,7 @@ class PollRepository(PollRepositoryInterface):
     def delete_poll(self, poll_id: str) -> bool:
         result = self.collection.delete_one({"_id": ObjectId(poll_id)})
         return result.deleted_count > 0
+    
     def increment_vote(self, poll_id: str, option_index: int) -> bool:
         result = self.collection.update_one(
             {"_id": ObjectId(poll_id)},
