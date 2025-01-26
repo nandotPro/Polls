@@ -20,11 +20,14 @@ def create_poll():
         }), 500
 
 @poll_routes_bp.route('/<poll_id>/vote', methods=['POST'])
-def vote():
+def vote(poll_id):
     try:
         http_request = HttpRequest(
             headers={"Authorization": request.headers.get("Authorization")},
-            body=request.json
+            body={
+                **request.json,
+                "poll_id": poll_id
+            }
         )
         response = poll_view.vote(http_request)
         return jsonify(response.body), response.status_code
