@@ -91,10 +91,7 @@ GET /polls/user
 
 ```bash
 # Executar testes
-pytest -v
-
-# Verificar cobertura
-pytest 
+pytest -v 
 ```
 
 ## Estrutura
