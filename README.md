@@ -98,12 +98,12 @@ pytest -v
 
 ```
 src/
-├── controllers/     # Regras de negócio
+├── controllers/    # Regras de negócio
 ├── models/         # Acesso a dados
 ├── services/       # Serviços auxiliares
 ├── validators/     # Validações
 ├── views/          # Rotas
 ├── errors/         # Tratamento de erros
-└── main/          # Configuração da aplicação
+└── main/           # Configuração da aplicação
 ```
 
