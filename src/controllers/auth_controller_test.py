@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import Mock
 from src.controllers.auth_controller import AuthController
+from src.errors.error_types.http_bad_request import HttpBadRequestError
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
 
 class TestAuthController:
     def setup_method(self):
@@ -53,7 +55,16 @@ class TestAuthController:
         self.user_repository.find_by_email.return_value = {"email": self.user_data["email"]}
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Email já cadastrado"):
+        with pytest.raises(HttpBadRequestError, match="Email já cadastrado"):
+            self.auth_controller.register(self.user_data)
+
+    def test_register_username_exists(self):
+        # Arrange
+        self.user_repository.find_by_email.return_value = None
+        self.user_repository.find_by_username.return_value = {"username": self.user_data["username"]}
+
+        # Act & Assert
+        with pytest.raises(HttpBadRequestError, match="Username já em uso"):
             self.auth_controller.register(self.user_data)
 
     def test_login_success(self):
@@ -77,4 +88,30 @@ class TestAuthController:
         # Assert
         assert result["token"] == "fake_token"
         assert result["user"]["id"] == "fake_id"
-        self.user_cache_repository.set_user.assert_called_once() 
+        self.user_cache_repository.set_user.assert_called_once()
+
+    def test_login_invalid_credentials(self):
+        # Arrange
+        self.user_repository.find_by_email.return_value = None
+
+        # Act & Assert
+        with pytest.raises(HttpUnauthorizedError, match="Credenciais inválidas"):
+            self.auth_controller.login(self.user_data["email"], self.user_data["password"])
+
+    def test_login_wrong_password(self):
+        # Arrange
+        fake_user = {
+            "_id": "fake_id",
+            "username": "test_user",
+            "email": "test@mail.com",
+            "password_hash": "hashed_password"
+        }
+        self.user_repository.find_by_email.return_value = fake_user
+        self.password_handler.verify_password.return_value = False
+
+        # Act & Assert
+        with pytest.raises(HttpUnauthorizedError, match="Credenciais inválidas"):
+            self.auth_controller.login(
+                self.user_data["email"],
+                self.user_data["password"]
+            ) 

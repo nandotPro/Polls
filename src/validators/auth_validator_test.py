@@ -1,6 +1,8 @@
 import pytest
 from src.validators.auth_validator import AuthValidator
 from src.views.http_types.http_request import HttpRequest
+from src.errors.error_types.http_bad_request import HttpBadRequestError
+from src.errors.error_types.http_unprocessable_entity import HttpUnprocessableEntityError
 
 class TestAuthValidator:
     def setup_method(self):
@@ -28,7 +30,7 @@ class TestAuthValidator:
         request = HttpRequest()
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Body é obrigatório"):
+        with pytest.raises(HttpBadRequestError, match="Body é obrigatório"):
             self.validator.validate_register(request)
 
     def test_validate_register_missing_field(self):
@@ -36,7 +38,7 @@ class TestAuthValidator:
         request = HttpRequest(body={"username": "test"})
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Campo email é obrigatório"):
+        with pytest.raises(HttpBadRequestError, match="Campo email é obrigatório"):
             self.validator.validate_register(request)
 
     def test_validate_register_invalid_email(self):
@@ -50,7 +52,7 @@ class TestAuthValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Email inválido"):
+        with pytest.raises(HttpUnprocessableEntityError, match="Email inválido"):
             self.validator.validate_register(request)
 
     def test_validate_register_short_password(self):
@@ -64,7 +66,7 @@ class TestAuthValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Senha deve ter no mínimo 6 caracteres"):
+        with pytest.raises(HttpUnprocessableEntityError, match="Senha deve ter no mínimo 6 caracteres"):
             self.validator.validate_register(request)
 
     def test_validate_login_success(self):
@@ -76,5 +78,19 @@ class TestAuthValidator:
         request = HttpRequest(body={"email": "test@example.com"})
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Campo password é obrigatório"):
-            self.validator.validate_login(request) 
+        with pytest.raises(HttpBadRequestError, match="Campo password é obrigatório"):
+            self.validator.validate_login(request)
+
+    def test_validate_register_invalid_field_types(self):
+        # Arrange
+        request = HttpRequest(
+            body={
+                "username": 123,  # deveria ser string
+                "email": "test@example.com",
+                "password": "test123456"
+            }
+        )
+
+        # Act & Assert
+        with pytest.raises(HttpUnprocessableEntityError, match="Campo username deve ser uma string"):
+            self.validator.validate_register(request) 

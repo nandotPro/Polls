@@ -1,6 +1,9 @@
 import pytest
 from unittest.mock import Mock
 from src.controllers.poll_controller import PollController
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
+from src.errors.error_types.http_not_found import HttpNotFoundError
+from src.errors.error_types.http_bad_request import HttpBadRequestError
 
 class TestPollController:
     def setup_method(self):
@@ -64,7 +67,7 @@ class TestPollController:
         self.poll_cache_repository.has_user_voted.return_value = True
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Usuário já votou nesta enquete"):
+        with pytest.raises(HttpBadRequestError, match="Usuário já votou nesta enquete"):
             self.poll_controller.vote("poll_id", 0, "fake_token")
 
     def test_get_poll_success(self):
@@ -95,5 +98,57 @@ class TestPollController:
         self.poll_repository.find_by_id.return_value = None
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Enquete não encontrada"):
-            self.poll_controller.get_poll("nonexistent123") 
+        with pytest.raises(HttpNotFoundError, match="Enquete não encontrada"):
+            self.poll_controller.get_poll("nonexistent123")
+
+    def test_invalid_token(self):
+        # Arrange
+        self.auth_handler.validate_token.side_effect = HttpUnauthorizedError("Token inválido")
+
+        # Act & Assert
+        with pytest.raises(HttpUnauthorizedError, match="Token inválido"):
+            self.poll_controller.create_poll(self.poll_data, "invalid_token")
+
+    def test_list_polls_success(self):
+        # Arrange
+        test_polls = [
+            {
+                "_id": "poll1",
+                "title": "Test Poll 1",
+                "options": [{"text": "Option 1", "votes": 0}]
+            },
+            {
+                "_id": "poll2",
+                "title": "Test Poll 2",
+                "options": [{"text": "Option 1", "votes": 0}]
+            }
+        ]
+        self.poll_repository.find_all_polls.return_value = test_polls
+
+        # Act
+        result = self.poll_controller.list_polls(page=1, limit=10)
+
+        # Assert
+        assert len(result) == 2
+        assert result[0]["_id"] == "poll1"
+        self.poll_repository.find_all_polls.assert_called_once_with(0, 10)
+
+    def test_get_user_polls_success(self):
+        # Arrange
+        test_polls = [
+            {
+                "_id": "poll1",
+                "title": "User Poll 1",
+                "created_by": "user123"
+            }
+        ]
+        self.auth_handler.validate_token.return_value = "user123"
+        self.poll_repository.find_user_polls.return_value = test_polls
+
+        # Act
+        result = self.poll_controller.get_user_polls("fake_token")
+
+        # Assert
+        assert len(result) == 1
+        assert result[0]["_id"] == "poll1"
+        self.poll_repository.find_user_polls.assert_called_once_with("user123") 

@@ -1,6 +1,8 @@
 import pytest
 from src.validators.poll_validator import PollValidator
 from src.views.http_types.http_request import HttpRequest
+from src.errors.error_types.http_bad_request import HttpBadRequestError
+from src.errors.error_types.http_unprocessable_entity import HttpUnprocessableEntityError
 
 class TestPollValidator:
     def setup_method(self):
@@ -30,7 +32,7 @@ class TestPollValidator:
         request = HttpRequest()
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Body é obrigatório"):
+        with pytest.raises(HttpBadRequestError, match="Body é obrigatório"):
             self.validator.validate_create_poll(request)
 
     def test_validate_create_poll_missing_field(self):
@@ -38,7 +40,7 @@ class TestPollValidator:
         request = HttpRequest(body={"title": "Test Poll"})
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Campo options é obrigatório"):
+        with pytest.raises(HttpBadRequestError, match="Campo options é obrigatório"):
             self.validator.validate_create_poll(request)
 
     def test_validate_create_poll_invalid_options_type(self):
@@ -51,7 +53,7 @@ class TestPollValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Options deve ser uma lista"):
+        with pytest.raises(HttpUnprocessableEntityError, match="Options deve ser uma lista"):
             self.validator.validate_create_poll(request)
 
     def test_validate_create_poll_insufficient_options(self):
@@ -64,7 +66,7 @@ class TestPollValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Enquete deve ter pelo menos 2 opções"):
+        with pytest.raises(HttpUnprocessableEntityError, match="Enquete deve ter pelo menos 2 opções"):
             self.validator.validate_create_poll(request)
 
     def test_validate_create_poll_invalid_option_format(self):
@@ -80,7 +82,7 @@ class TestPollValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Cada opção deve ter um campo 'text'"):
+        with pytest.raises(HttpUnprocessableEntityError, match="Cada opção deve ter um campo 'text'"):
             self.validator.validate_create_poll(request)
 
     def test_validate_vote_success(self):
@@ -92,7 +94,7 @@ class TestPollValidator:
         request = HttpRequest(body={"poll_id": "123"})
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Campo option_index é obrigatório"):
+        with pytest.raises(HttpBadRequestError, match="Campo option_index é obrigatório"):
             self.validator.validate_vote(request)
 
     def test_validate_vote_invalid_option_index_type(self):
@@ -105,5 +107,5 @@ class TestPollValidator:
         )
 
         # Act & Assert
-        with pytest.raises(ValueError, match="option_index deve ser um número"):
+        with pytest.raises(HttpUnprocessableEntityError, match="option_index deve ser um número"):
             self.validator.validate_vote(request) 

@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
 from src.services.jwt_handler import JWTHandler
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
 import jwt
 import os
 from dotenv import load_dotenv
@@ -58,7 +59,7 @@ class TestJWTHandler:
         )
         
         # Act & Assert
-        with pytest.raises(ValueError, match="Token expirado"):
+        with pytest.raises(HttpUnauthorizedError, match="Token expirado"):
             self.jwt_handler.validate_token(token)
 
     def test_validate_invalid_token(self):
@@ -66,8 +67,18 @@ class TestJWTHandler:
         invalid_token = "invalid.token.here"
         
         # Act & Assert
-        with pytest.raises(ValueError, match="Token inválido"):
+        with pytest.raises(HttpUnauthorizedError, match="Token inválido"):
             self.jwt_handler.validate_token(invalid_token)
+
+    def test_generate_token_invalid_payload(self):
+        # Arrange
+        invalid_payload = {
+            "user_id": object()  # objeto não serializável
+        }
+        
+        # Act & Assert
+        with pytest.raises(Exception, match="Object of type object is not JSON serializable"):
+            self.jwt_handler.generate_token(invalid_payload)
 
     @classmethod
     def teardown_class(cls):
