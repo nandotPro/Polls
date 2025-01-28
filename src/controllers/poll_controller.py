@@ -3,6 +3,9 @@ from src.models.mongodb.repository.poll_repository import PollRepository
 from src.models.redis.repository.poll_cache_repository import PollCacheRepository
 from src.services.jwt_handler import JWTHandler
 from datetime import datetime
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
+from src.errors.error_types.http_not_found import HttpNotFoundError
+from src.errors.error_types.http_bad_request import HttpBadRequestError
 
 class PollController(PollControllerInterface):
     def __init__(
@@ -18,7 +21,10 @@ class PollController(PollControllerInterface):
     def create_poll(self, poll_data: dict, token: str) -> dict:
         """Cria uma nova enquete"""
         # Validar token e obter user_id
-        user_id = self.auth_handler.validate_token(token)
+        try:
+            user_id = self.auth_handler.validate_token(token)
+        except:
+            raise HttpUnauthorizedError("Token inválido")
         
         # Preparar dados da enquete
         poll_data["created_by"] = user_id
@@ -36,7 +42,7 @@ class PollController(PollControllerInterface):
         # Buscar enquete
         poll = self.poll_repository.find_by_id(poll_id)
         if not poll:
-            raise ValueError("Enquete não encontrada")
+            raise HttpNotFoundError("Enquete não encontrada")
 
         # Buscar votos em tempo real
         votes = self.poll_cache_repository.get_poll_votes(poll_id)
@@ -51,16 +57,19 @@ class PollController(PollControllerInterface):
     def vote(self, poll_id: str, option_index: int, token: str) -> dict:
         """Registra voto em uma enquete"""
         # Validar token e obter user_id
-        user_id = self.auth_handler.validate_token(token)
+        try:
+            user_id = self.auth_handler.validate_token(token)
+        except:
+            raise HttpUnauthorizedError("Token inválido")
 
         # Verificar se usuário já votou
         if self.poll_cache_repository.has_user_voted(poll_id, user_id):
-            raise ValueError("Usuário já votou nesta enquete")
+            raise HttpBadRequestError("Usuário já votou nesta enquete")
 
         # Registrar voto no cache
         success = self.poll_cache_repository.register_vote(poll_id, user_id, option_index)
         if not success:
-            raise ValueError("Erro ao registrar voto")
+            raise HttpBadRequestError("Erro ao registrar voto")
 
         # Incrementar voto no MongoDB
         self.poll_repository.increment_vote(poll_id, option_index)

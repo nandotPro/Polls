@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict
 import os
 from dotenv import load_dotenv
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
 
 class JWTHandler:
     def __init__(self):
@@ -24,6 +25,6 @@ class JWTHandler:
         try:
             return jwt.decode(token, self.secret, algorithms=[self.algorithm])
         except jwt.ExpiredSignatureError:
-            raise ValueError("Token expirado")
+            raise HttpUnauthorizedError("Token expirado")
         except jwt.InvalidTokenError:
-            raise ValueError("Token inválido") 
+            raise HttpUnauthorizedError("Token inválido") 

@@ -3,6 +3,8 @@ from src.models.redis.repository.user_cache_repository import UserCacheRepositor
 from src.services.jwt_handler import JWTHandler
 from src.services.password_handler import PasswordHandler
 from src.controllers.interface.auth_controller_interface import AuthControllerInterface
+from src.errors.error_types.http_unauthorized import HttpUnauthorizedError
+from src.errors.error_types.http_bad_request import HttpBadRequestError
 
 class AuthController(AuthControllerInterface):
     def __init__(
@@ -21,10 +23,10 @@ class AuthController(AuthControllerInterface):
         """Registra um novo usuário"""
         # Validar dados
         if self.user_repository.find_by_email(user_data["email"]):
-            raise ValueError("Email já cadastrado")
+            raise HttpBadRequestError("Email já cadastrado")
         
         if self.user_repository.find_by_username(user_data["username"]):
-            raise ValueError("Username já em uso")
+            raise HttpBadRequestError("Username já em uso")
 
         # Hash da senha
         user_data["password_hash"] = self.password_handler.hash_password(user_data["password"])
@@ -50,11 +52,11 @@ class AuthController(AuthControllerInterface):
         # Buscar usuário
         user = self.user_repository.find_by_email(email)
         if not user:
-            raise ValueError("Credenciais inválidas")
+            raise HttpUnauthorizedError("Credenciais inválidas")
 
         # Verificar senha
         if not self.password_handler.verify_password(password, user["password_hash"]):
-            raise ValueError("Credenciais inválidas")
+            raise HttpUnauthorizedError("Credenciais inválidas")
 
         # Gerar token
         token = self.jwt_handler.generate_token({"user_id": str(user["_id"])})
