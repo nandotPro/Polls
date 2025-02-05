@@ -1,4 +1,16 @@
-**/__pycache__
-.pytest_cache/
-venv
+# Virtual Environment
+.venv/
+venv/
 .env
+
+# Pipenv
+/.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Pytest
+.pytest_cache/
